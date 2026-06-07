@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPACE Solutions | Weby, e-shopy, marketing, AI riešenia a systémy na mieru</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--c:#a78bfa;--c2:#7c3aed;--c3:#c4b5fd;--bg:#020206;--t:#e2e6f0;--td:#7880a0;
+  --f:'Outfit',sans-serif;--fm:'Space Grotesk',monospace}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--bg);color:var(--t);overflow-x:hidden}
+
+/* LOADER */
+#loader{position:fixed;inset:0;z-index:9999;background:#020206;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .8s ease,visibility .8s}
+#loader.done{opacity:0;visibility:hidden;pointer-events:none}
+.loader-logo{height:30px;margin-bottom:24px;opacity:0;animation:lf .6s ease .2s forwards}
+.loader-bar{width:200px;height:2px;background:rgba(167,139,250,.1);border-radius:2px;overflow:hidden}
+.loader-fill{height:100%;width:0;background:var(--c);border-radius:2px;
+  box-shadow:0 0 12px rgba(167,139,250,.5);transition:width .3s}
+.loader-pct{margin-top:12px;font-size:.7rem;letter-spacing:3px;color:var(--td);
+  font-family:var(--fm);opacity:0;animation:lf .6s ease .4s forwards}
+@keyframes lf{to{opacity:1}}
+
+/* 3D CANVAS */
+#scene{position:fixed;inset:0;z-index:0}
+
+/* CONTENT */
+.content{position:relative;z-index:3}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 48px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(2,2,6,.3);backdrop-filter:blur(30px) saturate(1.4);
+  border-bottom:1px solid rgba(167,139,250,.05);
+  opacity:0;transform:translateY(-20px);transition:opacity .8s,transform .8s}
+nav.show{opacity:1;transform:translateY(0)}
+.logo img{height:26px}
+.nav-r{display:flex;align-items:center;gap:36px}
+.nav-r a{color:#c0c4d8;text-decoration:none;font-size:.78rem;font-weight:500;
+  letter-spacing:.5px;transition:color .3s}
+.nav-r a:hover{color:#fff}
+.nav-cta{padding:10px 22px;background:var(--c);color:#fff!important;border:none;border-radius:8px;
+  font-family:var(--f);font-size:.78rem;font-weight:700;text-decoration:none;
+  transition:transform .3s,box-shadow .3s;box-shadow:0 0 20px rgba(167,139,250,.3)}
+.nav-cta:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(167,139,250,.5);color:#fff}
+
+section{position:relative}
+section.hero{min-height:100vh}
+
+/* HERO */
+.hero{display:flex;align-items:center;padding:0 8%;pointer-events:none}
+.hero-content{max-width:560px;pointer-events:auto}
+.hero-label{font-size:.68rem;letter-spacing:5px;text-transform:uppercase;
+  color:var(--c);margin-bottom:20px;opacity:0;transform:translateY(25px)}
+.hero h1{font-size:clamp(2.2rem,4.5vw,3.6rem);font-weight:700;line-height:1.2;
+  letter-spacing:-.5px;margin-bottom:20px;opacity:0;transform:translateY(30px)}
+.hero h1 em{font-style:normal;color:var(--c);text-shadow:0 0 50px rgba(167,139,250,.3)}
+.hero-p{font-size:clamp(.88rem,1.2vw,1rem);color:var(--td);max-width:460px;
+  line-height:1.8;margin-bottom:36px;opacity:0;transform:translateY(25px)}
+.hero-btns{display:flex;gap:14px;opacity:0;transform:translateY(25px)}
+
+.btn{padding:14px 28px;border-radius:10px;font-family:var(--f);
+  font-size:.85rem;font-weight:600;text-decoration:none;
+  transition:all .3s cubic-bezier(.16,1,.3,1)}
+.btn-p{background:var(--c);color:#fff;box-shadow:0 4px 20px rgba(167,139,250,.25)}
+.btn-p:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 40px rgba(167,139,250,.4)}
+.btn-s{background:rgba(255,255,255,.04);color:var(--t);border:1px solid rgba(255,255,255,.08)}
+.btn-s:hover{background:rgba(167,139,250,.06);border-color:rgba(167,139,250,.2)}
+
+/* SECTIONS */
+.sec{padding:80px 48px;max-width:1200px;margin:0 auto;position:relative;z-index:5}
+.stag{font-size:.65rem;letter-spacing:5px;text-transform:uppercase;
+  color:var(--c);margin-bottom:12px;font-weight:600}
+.sh{font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;margin-bottom:12px}
+.sh em{font-style:normal;color:var(--c);text-shadow:0 0 30px rgba(167,139,250,.15)}
+.sp{color:var(--td);max-width:500px;line-height:1.7;font-size:.92rem;margin-bottom:56px}
+
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.gc{padding:36px 28px;border-radius:16px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);
+  transition:transform .5s cubic-bezier(.16,1,.3,1),border-color .4s,box-shadow .4s;
+  transform-style:preserve-3d;opacity:0;transform:translateY(40px)}
+.gc.v{opacity:1;transform:translateY(0)}
+.gc:hover{border-color:rgba(167,139,250,.15);transform:translateY(-6px);
+  box-shadow:0 20px 60px rgba(0,0,0,.3),0 0 40px rgba(167,139,250,.04)}
+.gc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(167,139,250,.2),transparent);
+  opacity:0;transition:opacity .4s}
+.gc:hover::before{opacity:1}
+.gc-i{width:40px;height:40px;border-radius:10px;
+  background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.12);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--c);font-size:1.1rem;margin-bottom:18px}
+.gc h3{font-size:1.05rem;font-weight:600;margin-bottom:8px}
+.gc h3{color:#fff}
+.gc p{color:var(--td);font-size:.82rem;line-height:1.7}
+
+/* PRICING */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pc{padding:36px 28px;border-radius:16px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);position:relative;
+  opacity:0;transform:translateY(40px);transition:transform .4s cubic-bezier(.16,1,.3,1),border-color .3s}
+.pc.v{opacity:1;transform:translateY(0)}
+.pc.ft{border-color:rgba(167,139,250,.3);background:linear-gradient(135deg,rgba(167,139,250,.04),rgba(167,139,250,.01))}
+.pc:hover{transform:translateY(-4px);border-color:rgba(167,139,250,.15)}
+.pbadge{position:absolute;top:-1px;right:20px;background:var(--c);color:#000;
+  font-size:.6rem;font-weight:700;letter-spacing:1px;padding:5px 10px;
+  border-radius:0 0 6px 6px;text-transform:uppercase}
+.pc h3{font-size:1rem;font-weight:700;margin-bottom:4px;font-family:var(--fm)}
+.pc .pd{font-size:.75rem;color:var(--td);margin-bottom:16px}
+.pp{font-size:2.2rem;font-weight:700;margin-bottom:20px}
+.pp span{font-size:.85rem;color:var(--td);font-weight:400}
+.pf{list-style:none;display:flex;flex-direction:column;gap:8px}
+.pf li{font-size:.78rem;color:#b0b4c8;display:flex;align-items:center;gap:7px}
+.pf .ck{color:var(--c);font-weight:700}
+.pf li.off{opacity:.3;text-decoration:line-through}
+
+/* PROCESS */
+.psteps{display:flex;gap:2px}
+.stp{flex:1;padding:32px 22px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);opacity:0;transform:translateY(30px);
+  transition:transform .4s,border-color .3s}
+.stp.v{opacity:1;transform:translateY(0)}
+.stp:first-child{border-radius:14px 0 0 14px}
+.stp:last-child{border-radius:0 14px 14px 0}
+.stp:hover{border-color:rgba(167,139,250,.1)}
+.sn{font-size:2rem;font-weight:700;color:#fff;margin-bottom:12px}
+.stp h3{font-size:.95rem;font-weight:700;margin-bottom:8px;color:#fff}
+.stp p{font-size:.8rem;color:#b0b4c8;line-height:1.7}
+
+/* CTA */
+.cta-s{padding:80px 48px;display:flex;justify-content:center;position:relative;z-index:5}
+.cta-box{text-align:center;max-width:680px;width:100%;padding:72px 56px;
+  border-radius:20px;position:relative;overflow:hidden;
+  background:rgba(167,139,250,.03);border:1px solid rgba(167,139,250,.1);
+  opacity:0;transform:translateY(30px)}
+.cta-box.v{opacity:1;transform:translateY(0)}
+.cta-box h2{font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;margin-bottom:14px}
+.cta-box h2 em{font-style:normal;color:var(--c)}
+.cta-box p{color:var(--td);margin-bottom:32px;font-size:.92rem;line-height:1.7;
+  max-width:480px;margin-left:auto;margin-right:auto}
+
+/* CONTACT */
+.cta-wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.cta-left .sp{margin-bottom:32px}
+.contact-info{display:flex;flex-direction:column;gap:16px}
+.ci{display:flex;align-items:center;gap:12px;color:#b0b4c8;font-size:.88rem}
+.ci svg{color:var(--c);flex-shrink:0}
+.cta-form{display:flex;flex-direction:column;gap:12px;padding:36px;border-radius:16px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(12px)}
+.fi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:14px 16px;color:#fff;font-family:var(--f);font-size:.85rem;
+  outline:none;transition:border-color .3s}
+.fi::placeholder{color:var(--td)}
+.fi:focus{border-color:rgba(167,139,250,.4)}
+.fi-ta{min-height:100px;resize:vertical}
+select.fi{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237880a0' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+select.fi option{background:#0a0a14;color:#fff}
+
+footer{position:relative;z-index:3;padding:40px 48px;text-align:center;
+  color:var(--td);font-size:.7rem;letter-spacing:1px;
+  border-top:1px solid rgba(255,255,255,.03)}
+
+@media(max-width:900px){
+  nav{padding:14px 20px}.nav-r a:not(.nav-cta){display:none}
+  .hero{text-align:center;justify-content:center}.hero-content{max-width:100%}
+  .hero-btns{justify-content:center}
+  .sec,.cta-s{padding:80px 20px}
+  .sgrid,.pgrid{grid-template-columns:1fr}
+  .cta-wrap{grid-template-columns:1fr}
+  .psteps{flex-direction:column;gap:8px}
+  .stp{border-radius:14px!important}
+}
+@media(max-width:500px){.hero-btns{flex-direction:column;align-items:center}}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <img class="loader-logo" src="https://spacesolutions.sk/logo.svg" alt="SPACE Solutions">
+  <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
+  <div class="loader-pct" id="loaderPct">0%</div>
+</div>
+
+<!-- 3D SCENE -->
+<canvas id="scene"></canvas>
+
+<!-- CONTENT -->
+<div class="content">
+<nav id="nav">
+  <div class="logo"><img src="https://spacesolutions.sk/logo.svg" alt="SPACE Solutions"></div>
+  <div class="nav-r">
+    <a href="#svc">Služby</a><a href="#price">Balíky</a>
+    <a href="#proc">Proces</a><a href="#cta">Kontakt</a>
+    <a href="#cta" class="nav-cta">Chcem ponuku</a>
+  </div>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <p class="hero-label" data-reveal>Digitálna agentúra pre firmy, ktoré chcú prestať improvizovať</p>
+    <h1 data-reveal>Weby, e-shopy, marketing<br><em>a systémy, ktoré zarábajú</em></h1>
+    <p class="hero-p" data-reveal>Stavíme firemné weby, e-shopy, marketingové kampane, AI riešenia a systémy na mieru. Viac dopytov, objednávok a voľného času pre váš biznis.</p>
+    <div class="hero-btns" data-reveal>
+      <a href="#cta" class="btn btn-p">Chcem nezáväznú ponuku</a>
+      <a href="#svc" class="btn btn-s">Pozrieť služby</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="svc">
+  <p class="stag">Čo robíme</p>
+  <h2 class="sh">Všetko pod jednou <em>strechou</em></h2>
+  <p class="sp">Spájame weby, e-shopy, marketing, AI a systémy na mieru do jedného funkčného celku.</p>
+  <div class="sgrid">
+    <div class="gc"><div class="gc-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h3>Weby</h3><p>Od one-page stránok po prémiové viacstránkové riešenia pripravené na SEO a marketing.</p></div>
+    <div class="gc"><div class="gc-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg></div><h3>E-shopy</h3><p>Vlastná platforma s integráciou platieb, dopravy, fakturácie a skladu.</p></div>
+    <div class="gc"><div class="gc-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4c0 2-2 3-2 5h-4c0-2-2-3-2-5a4 4 0 014-4z"/><path d="M10 17h4M10 21h4M10 13h4"/></svg></div><h3>AI a automatizácia</h3><p>Chatboti, automatizácia procesov a inteligentní asistenti.</p></div>
+    <div class="gc"><div class="gc-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><h3>Projekty na mieru</h3><p>CRM, klientské portály, interné aplikácie okolo vášho biznisu.</p></div>
+    <div class="gc"><div class="gc-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3>Marketing a rast</h3><p>PPC, sociálne siete, email marketing. Merateľné výsledky.</p></div>
+    <div class="gc"><div class="gc-i"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Care & Podpora</h3><p>Technická starostlivosť, zálohy, aktualizácie a monitoring.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="price">
+  <p class="stag">Balíky webov</p>
+  <h2 class="sh">Jasné ceny, jasné <em>termíny</em></h2>
+  <p class="sp">Každý balík má pevne daný rozsah — garantujeme cenu aj dodanie.</p>
+  <div class="pgrid">
+    <div class="pc"><h3>WEB MINI</h3><div class="pd">One-page web pre začínajúcich podnikateľov</div><div class="pp">499 <span>€</span></div><ul class="pf"><li><span class="ck">&#10003;</span>1–3 sekcie</li><li><span class="ck">&#10003;</span>Šablónový dizajn</li><li><span class="ck">&#10003;</span>Kontaktný formulár</li><li><span class="ck">&#10003;</span>Responzívny dizajn</li><li><span class="ck">&#10003;</span>Základné SEO</li><li class="off"><span class="ck">&#10003;</span>Blog</li><li class="off"><span class="ck">&#10003;</span>Custom dizajn</li></ul></div>
+    <div class="pc ft"><div class="pbadge">Obľúbený</div><h3>WEB STANDARD</h3><div class="pd">Profesionálny web pre rastúce firmy</div><div class="pp">999 <span>€</span></div><ul class="pf"><li><span class="ck">&#10003;</span>Do 5 podstránok</li><li><span class="ck">&#10003;</span>UI kit úpravy</li><li><span class="ck">&#10003;</span>2 formuláre</li><li><span class="ck">&#10003;</span>Responzívny dizajn</li><li><span class="ck">&#10003;</span>Rozšírené SEO</li><li><span class="ck">&#10003;</span>Blog</li><li class="off"><span class="ck">&#10003;</span>Custom dizajn</li></ul></div>
+    <div class="pc"><h3>WEB PREMIUM</h3><div class="pd">Prémiový web s custom dizajnom</div><div class="pp">2 399 <span>€</span></div><ul class="pf"><li><span class="ck">&#10003;</span>Do 10 podstránok</li><li><span class="ck">&#10003;</span>Custom dizajn</li><li><span class="ck">&#10003;</span>Neobmedzené formuláre</li><li><span class="ck">&#10003;</span>Komplexné SEO</li><li><span class="ck">&#10003;</span>Blog + admin</li><li><span class="ck">&#10003;</span>Jazyková mutácia</li><li><span class="ck">&#10003;</span>FAQ, lead magnet</li></ul></div>
+  </div>
+</section>
+
+<section class="sec" id="proc">
+  <p class="stag">Ako pracujeme</p>
+  <h2 class="sh">Proces v 5 <em>krokoch</em></h2>
+  <p class="sp">Od prvého stretnutia po spustenie. Transparentný proces.</p>
+  <div class="psteps">
+    <div class="stp"><div class="sn">01</div><h3>Rozhovor</h3><p>Čo robíte a čo od webu očakávate.</p></div>
+    <div class="stp"><div class="sn">02</div><h3>Špecifikácia</h3><p>Štruktúra, funkcie, obsah.</p></div>
+    <div class="stp"><div class="sn">03</div><h3>Dizajn</h3><p>UI kit alebo custom podľa brandu.</p></div>
+    <div class="stp"><div class="sn">04</div><h3>Vývoj</h3><p>Kód, testy, optimalizácia.</p></div>
+    <div class="stp"><div class="sn">05</div><h3>Launch + Care</h3><p>Spustenie a dlhodobá podpora.</p></div>
+  </div>
+</section>
+
+<section class="sec" id="cta">
+  <div class="cta-wrap">
+    <div class="cta-left">
+      <p class="stag">Kontakt</p>
+      <h2 class="sh">Začnime na vašom <em>projekte</em></h2>
+      <p class="sp">Máte web, ktorý už nerastie, alebo nápad na vlastný systém? Prvá konzultácia je nezáväzná.</p>
+      <div class="contact-info">
+        <div class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span>info@spacesolutions.sk</span></div>
+        <div class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span>+421 123 456 789</span></div>
+        <div class="ci"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Bratislava, Slovensko</span></div>
+      </div>
+    </div>
+    <div class="cta-form">
+      <input type="text" placeholder="Meno a priezvisko" class="fi">
+      <input type="email" placeholder="E-mail" class="fi">
+      <input type="text" placeholder="Telefón (voliteľné)" class="fi">
+      <select class="fi"><option value="">Čo vás zaujíma?</option><option>Web</option><option>E-shop</option><option>Marketing</option><option>AI riešenie</option><option>Systém na mieru</option></select>
+      <textarea placeholder="Vaša správa..." class="fi fi-ta"></textarea>
+      <button type="button" class="btn btn-p" style="width:100%;text-align:center">Odoslať dopyt</button>
+    </div>
+  </div>
+</section>
+<footer>&copy; 2026 SPACE Solutions — Weby, e-shopy, marketing, AI riešenia a systémy na mieru.</footer>
+</div>
+
+<script>
+// ==================== THREE.JS 3D SCENE ====================
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.NoToneMapping;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x020206, 0.0008);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 2000);
+camera.position.set(0, 0, 5);
+
+// === LIGHTS ===
+const ambLight = new THREE.AmbientLight(0x6a6a8a, 1.0);
+scene.add(ambLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+dirLight.position.set(-5, 3, 5);
+scene.add(dirLight);
+const purpleLight = new THREE.PointLight(0xa78bfa, 0.6, 50);
+purpleLight.position.set(3, 2, 3);
+scene.add(purpleLight);
+
+// === STARS (round particles via canvas texture) ===
+const starCanvas = document.createElement('canvas');
+starCanvas.width = 64; starCanvas.height = 64;
+const sCtx = starCanvas.getContext('2d');
+const sg = sCtx.createRadialGradient(32,32,0, 32,32,32);
+sg.addColorStop(0, 'rgba(255,255,255,1)');
+sg.addColorStop(0.15, 'rgba(220,215,255,0.9)');
+sg.addColorStop(0.4, 'rgba(200,195,240,0.3)');
+sg.addColorStop(1, 'rgba(200,195,240,0)');
+sCtx.fillStyle = sg;
+sCtx.fillRect(0,0,64,64);
+const starTex = new THREE.CanvasTexture(starCanvas);
+
+const starCount = 3000;
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(starCount * 3);
+for (let i = 0; i < starCount; i++) {
+  starPos[i*3] = (Math.random() - 0.5) * 600;
+  starPos[i*3+1] = (Math.random() - 0.5) * 600;
+  starPos[i*3+2] = (Math.random() - 0.5) * 600;
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+
+const starMat = new THREE.PointsMaterial({
+  map: starTex, color: 0xd4d0f8, size: 1.2, sizeAttenuation: true,
+  transparent: true, opacity: 0.9, depthWrite: false,
+  blending: THREE.AdditiveBlending
+});
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+// === MOON ===
+const moonGeo = new THREE.SphereGeometry(2.2, 128, 128);
+const textureLoader = new THREE.TextureLoader();
+
+// Track loading
+let loaded = 0;
+const totalLoad = 1;
+const fill = document.getElementById('loaderFill');
+const pct = document.getElementById('loaderPct');
+
+function onProgress() {
+  loaded++;
+  const p = Math.round((loaded / totalLoad) * 100);
+  fill.style.width = p + '%';
+  pct.textContent = p + '%';
+  if (loaded >= totalLoad) setTimeout(startReveal, 400);
+}
+
+// Equirectangular moon texture — proper sphere mapping, no black backside
+const moonUrls = [
+  'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg',
+  'https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004720/lroc_color_poles_2k.jpg',
+  'https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg'
+];
+let moonTexLoaded = false;
+let moonTex;
+
+function tryLoadMoon(idx) {
+  if (idx >= moonUrls.length || moonTexLoaded) return;
+  moonTex = textureLoader.load(moonUrls[idx],
+    (tex) => {
+      moonTexLoaded = true;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      moon.material.map = tex;
+      moon.material.needsUpdate = true;
+      onProgress();
+    },
+    undefined,
+    () => tryLoadMoon(idx + 1)
+  );
+}
+
+const moonMat = new THREE.MeshBasicMaterial({ color: 0x888888 });
+moonMat.depthTest = true;
+tryLoadMoon(0);
+const moon = new THREE.Mesh(moonGeo, moonMat);
+moon.position.set(3.5, -0.5, -2);
+scene.add(moon);
+
+// === 3D SPACESHIP — Loaded from GLB model ===
+const ufo = new THREE.Group();
+const S = 0.5;
+let shipMixer = null; // animation mixer
+let shipModel = null;
+const ufoLight = new THREE.PointLight(0xa78bfa, 1.5, 14);
+ufoLight.position.y = -S*0.5;
+ufo.add(ufoLight);
+
+// Glow sprite under ship
+const ufoGlowCanvas = document.createElement('canvas');
+ufoGlowCanvas.width = 256; ufoGlowCanvas.height = 256;
+const ugCtx = ufoGlowCanvas.getContext('2d');
+const ugGrad = ugCtx.createRadialGradient(128,128,0,128,128,128);
+ugGrad.addColorStop(0,'rgba(196,181,253,0.7)');
+ugGrad.addColorStop(0.2,'rgba(167,139,250,0.3)');
+ugGrad.addColorStop(0.5,'rgba(124,58,237,0.1)');
+ugGrad.addColorStop(1,'rgba(124,58,237,0)');
+ugCtx.fillStyle = ugGrad;
+ugCtx.fillRect(0,0,256,256);
+const ufoGlowTex = new THREE.CanvasTexture(ufoGlowCanvas);
+const ufoGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map:ufoGlowTex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false
+}));
+ufoGlow.scale.set(S*6, S*6, 1);
+ufoGlow.position.y = -S*0.3;
+ufo.add(ufoGlow);
+
+// ---- ENGINE GLOW (subtle, model has its own flames) ----
+const engineLight = new THREE.PointLight(0xa78bfa, 1.0, 15);
+engineLight.position.z = -8;
+ufo.add(engineLight);
+
+// Track model's flame meshes for animation
+let flameMeshes = [];
+
+ufo.scale.set(0.12, 0.12, 0.12);
+ufo.position.set(-10, 1.5, 0);
+scene.add(ufo);
+
+// Load GLB model
+const gltfLoader = new THREE.GLTFLoader();
+gltfLoader.load('ufo.glb', function(gltf) {
+  shipModel = gltf.scene;
+  // Center the model
+  const box = new THREE.Box3().setFromObject(shipModel);
+  const center = box.getCenter(new THREE.Vector3());
+  shipModel.position.sub(center);
+  // Make materials brighter / emissive
+  shipModel.traverse(function(child) {
+    if (child.isMesh && child.material) {
+      const mats = Array.isArray(child.material) ? child.material : [child.material];
+      mats.forEach(function(mat) {
+        if (mat.isMeshStandardMaterial) {
+          // Make everything silver/bright so it's visible in space
+          mat.color.set(0xccccdd);
+          mat.metalness = 0.85;
+          mat.roughness = 0.15;
+          mat.emissive = new THREE.Color(0x333344);
+          mat.emissiveIntensity = 0.3;
+          mat.envMapIntensity = 2.0;
+        }
+        mat.needsUpdate = true;
+      });
+    }
+  });
+  ufo.add(shipModel);
+  // Setup animations
+  if (gltf.animations && gltf.animations.length > 0) {
+    shipMixer = new THREE.AnimationMixer(shipModel);
+    gltf.animations.forEach(function(clip) {
+      const action = shipMixer.clipAction(clip);
+      action.play();
+    });
+  }
+  console.log('Spaceship loaded!', gltf.animations.length, 'animations');
+}, function(progress) {
+  if (progress.total) console.log('Loading ship:', Math.round(progress.loaded/progress.total*100) + '%');
+}, function(err) {
+  console.error('Ship load error:', err);
+});
+
+// === DUST PARTICLES ===
+const dustCount = 500;
+const dustGeo = new THREE.BufferGeometry();
+const dustPos = new Float32Array(dustCount * 3);
+for (let i = 0; i < dustCount; i++) {
+  dustPos[i*3] = (Math.random() - 0.5) * 30;
+  dustPos[i*3+1] = (Math.random() - 0.5) * 30;
+  dustPos[i*3+2] = (Math.random() - 0.5) * 30;
+}
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+const dustMat = new THREE.PointsMaterial({
+  color: 0xa78bfa, size: 0.03, transparent: true, opacity: 0.3, sizeAttenuation: true
+});
+const dust = new THREE.Points(dustGeo, dustMat);
+scene.add(dust);
+
+// === SCROLL & MOUSE TRACKING ===
+let scrollY = 0, targetScrollY = 0;
+let mouseX = 0, mouseY = 0;
+window.addEventListener('scroll', () => targetScrollY = window.scrollY);
+window.addEventListener('mousemove', e => {
+  mouseX = (e.clientX / innerWidth - 0.5) * 2;
+  mouseY = (e.clientY / innerHeight - 0.5) * 2;
+});
+
+// === ANIMATION LOOP ===
+const clock = new THREE.Clock();
+let prevTime = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  const delta = t - prevTime;
+  prevTime = t;
+  scrollY += (targetScrollY - scrollY) * 0.08;
+  const scrollFactor = scrollY / innerHeight;
+
+  // Moon slow rotation
+  moon.rotation.y = t * 0.05 + scrollFactor * 0.5;
+
+  // Camera follows scroll
+  camera.position.y = -scrollFactor * 2;
+  camera.position.x = mouseX * 0.3;
+  camera.position.z = 5 - scrollFactor * 0.5;
+  camera.lookAt(0, -scrollFactor * 2, 0);
+
+  // Moon moves with scroll — always visible
+  moon.position.y = -0.5 - scrollFactor * 1.5;
+
+  // Spaceship — flies straight ➡️, 35s visible, spinning + hovering
+  const rTotal = 45;
+  const rCycle = (t % rTotal) / rTotal;
+  if (rCycle < 0.78) {
+    const rp = rCycle / 0.78; // 0→1 over ~35s
+    ufo.visible = true;
+    // Straight horizontal path, ABOVE the moon + hover bob
+    ufo.position.x = -10 + rp * 22;
+    ufo.position.y = 1.5 - scrollFactor * 1.5 + Math.sin(t * 0.8) * 0.1;
+    ufo.position.z = Math.sin(t * 0.4) * 0.1;
+    // UFO spins while flying ➡️
+    ufo.rotation.set(0, t * 1.5, 0);
+    // Glow pulses
+    ufoGlow.scale.set(
+      S*6 + Math.sin(t * 1.2) * S*0.8,
+      S*6 + Math.sin(t * 1.5) * S*0.8, 1
+    );
+    ufoLight.intensity = 1.0 + Math.sin(t * 2) * 0.5;
+    // Pulsing glow light
+    engineLight.intensity = 0.8 + Math.sin(t * 2) * 0.4;
+  } else {
+    ufo.visible = false;
+  }
+
+  // Stars drift
+  stars.rotation.y = t * 0.008 + mouseX * 0.02;
+  stars.rotation.x = mouseY * 0.01;
+
+  // Dust float
+  dust.rotation.y = t * 0.02;
+  dust.rotation.x = Math.sin(t * 0.1) * 0.05;
+
+  // Purple light pulse
+  purpleLight.intensity = 0.4 + Math.sin(t * 0.5) * 0.2;
+  purpleLight.position.y = moon.position.y + 2;
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// === RESIZE ===
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ==================== CINEMATIC REVEAL ====================
+function startReveal() {
+  document.getElementById('loader').classList.add('done');
+
+  // Stagger hero text reveals
+  const reveals = document.querySelectorAll('[data-reveal]');
+  reveals.forEach((el, i) => {
+    setTimeout(() => {
+      el.style.transition = 'opacity 1s cubic-bezier(.16,1,.3,1), transform 1s cubic-bezier(.16,1,.3,1)';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, 600 + i * 200);
+  });
+
+  // Nav reveal
+  setTimeout(() => document.getElementById('nav').classList.add('show'), 1400);
+}
+
+// Fallback if textures fail
+setTimeout(() => { if (loaded < totalLoad) { loaded = totalLoad; startReveal(); } }, 4000);
+
+// === SCROLL REVEALS ===
+const obs = new IntersectionObserver(es => {
+  es.forEach(e => { if (e.isIntersecting) e.target.classList.add('v') });
+}, {threshold: .05});
+document.querySelectorAll('.gc,.pc,.stp,.cta-box').forEach((el, i) => {
+  el.style.transitionDelay = `${(i % 3) * .06}s`;
+  el.style.transitionDuration = '.6s';
+  el.style.transitionTimingFunction = 'cubic-bezier(.16,1,.3,1)';
+  el.style.transitionProperty = 'opacity,transform';
+  obs.observe(el);
+});
+
+// === 3D CARD TILT ===
+document.querySelectorAll('.gc').forEach(c => {
+  c.addEventListener('mousemove', e => {
+    const r = c.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - .5;
+    const y = (e.clientY - r.top) / r.height - .5;
+    c.style.transform = `translateY(-6px) rotateY(${x*10}deg) rotateX(${-y*10}deg)`;
+  });
+  c.addEventListener('mouseleave', () => {
+    c.style.transform = 'translateY(0) rotateY(0) rotateX(0)';
+  });
+});
+</script>
+</body>
+</html>
